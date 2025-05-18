@@ -3,7 +3,7 @@
 import sys
 import os
 import subprocess
-
+import threading
 
 class Cmd:
     """Cmd("<shell cmd>").exec() to run
@@ -11,7 +11,11 @@ c = Cmd("<shell cmd>") | Cmd("<shell cmd2>")
 c.exec()
 
 pipes the output from <shell cmd> to <shell cmd2>.
-"""
+
+all passed string arguments are concatenated into a string separated
+by spaces which is passed to a shell to execute
+
+    """
     def __init__(self, *args):
         self.args = args
         self.cmd = " ".join(self.args)
@@ -21,6 +25,10 @@ pipes the output from <shell cmd> to <shell cmd2>.
         self.prev_pipeline_cmd = None
         self.encoding = 'utf-8'
         self.resultcode = None
+
+
+        self.popen_res = None
+        self.pipesize = -1
     # end def
 
     def enc(self, encoding):
@@ -74,8 +82,10 @@ pipes the output from <shell cmd> to <shell cmd2>.
                                #capture_output=self.capture_output,
                                env=None,
                                encoding=self.encoding,
-                               shell=True)
-
+                               shell=True,
+                               pipesize=self.pipesize
+                               )
+        self.popen_res = ret
         if (self.next_pipeline_cmd):
             res = self.next_pipeline_cmd.run(ret.stdout)
             ret.wait()
@@ -101,13 +111,25 @@ class Filter(Cmd):
             stdout = os.fdopen(outpipe_w, "w")
             stdout_r = os.fdopen(outpipe_r)
         # end if
-        self.process(input, stdout, stderr)
+        #self.process(input, stdout, stderr)
+        self.thread = threading.Thread(target=self.thread_entry,
+                                       args=(input,stdout,stderr))
+        self.thread.start()
 
         if (self.next_pipeline_cmd):
-            stdout.close()
-            return self.next_pipeline_cmd.run(stdout_r)
+            res = self.next_pipeline_cmd.run(stdout_r)
+            self.thread.join()
+            return res
         else:
+            self.thread.join()
             return 0
+        # end if
+    # end def
+
+    def thread_entry(self, stdin, stdout, stderr):
+        self.process(stdin, stdout, stderr)
+        if (stdout != sys.stdout):
+            stdout.close()
         # end if
     # end def
 
@@ -119,23 +141,12 @@ class Filter(Cmd):
     # end
 # end class
 
-class LineFilter(Cmd):
+class LineFilter(Filter):
     """Base class to derive line-oriented filters"""
-    def run(self, input=None):
-        stdout = sys.stdout
-        stderr = sys.stderr
-        if (self.next_pipeline_cmd):
-            (outpipe_r,outpipe_w) = os.pipe()
-            stdout = os.fdopen(outpipe_w, "w")
-            stdout_r = os.fdopen(outpipe_r)
-        # end if
-        self.process(input.readlines(), stdout, stderr)
-
-        if (self.next_pipeline_cmd):
+    def thread_entry(self, stdin, stdout, stderr):
+        self.process(stdin.readlines(), stdout, stderr)
+        if (stdout != sys.stdout):
             stdout.close()
-            return self.next_pipeline_cmd.run(stdout_r)
-        else:
-            return 0
         # end if
     # end def
 
@@ -169,6 +180,7 @@ class Result(Filter):
     """Filter that can be put at the end of pipelines to collect the output which can be accessed later in the member variable self.result as text"""
     def process(self, stdin, stdout, stderr):
         self.result = stdin.read()
+        sys.stderr.write(f"HI {self.result}\n")
     # end
 # end class
 
