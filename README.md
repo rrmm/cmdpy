@@ -1,4 +1,4 @@
-
+# cmdpy
 
 First crack at a module that allows you to run shell commands more
 conveniently from python with shell-like pipelines.  Commands can be
@@ -21,8 +21,10 @@ example.py shows example of its use.
 testcmd.py, testgen.py, and wait.py are used to demonstrate behavior
 where output fills a pipe buffer entirely.
 
-examples:
+Examples
+--------
 
+````
 c=Cmd("cat *") | Cmd("wc -l")
 c.exec()
 
@@ -32,4 +34,4 @@ print(c.result)
 
 c = (Cmd("ls")  | (cl:=CountLines())).exec()
 print(cl.line_count)
-
+````
