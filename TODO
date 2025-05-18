@@ -1,0 +1,7 @@
+
+
+
+if the cmd doesn't exist or otherwise fails, we don't flag it correctly
+
+
+might want to flush stdout at the end of the pipeline?

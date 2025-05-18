@@ -185,7 +185,6 @@ class Result(Filter):
     """Filter that can be put at the end of pipelines to collect the output which can be accessed later in the member variable self.result as text"""
     def process(self, stdin, stdout, stderr):
         self.result = stdin.read()
-        sys.stderr.write(f"HI {self.result}\n")
     # end
 # end class
 
