@@ -1,5 +1,10 @@
 #!/usr/bin/python3
 
+# Python module to run shell commands mixed with python code in pipelines.
+# (C) 2025 RM
+# Copying subject to LGPL see LICENSE file.
+
+
 import sys
 import os
 import subprocess
