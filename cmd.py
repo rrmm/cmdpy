@@ -47,7 +47,7 @@ by spaces which is passed to a shell to execute
     # the last operation (rightmost), but we want to start execution
     # from beginning of the pipeline so we fix that up
     def exec(self):
-        self.resultcode = self.get_first().run()
+        self.resultcode = self.get_first().run(sys.stdin)
         return self
     # end def
 
