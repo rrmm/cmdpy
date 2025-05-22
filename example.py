@@ -5,6 +5,9 @@ from collections import namedtuple
 from cmd import Cmd, CountLines, Filter, LineFilter, Result, LResult
 
 
+
+Cmd("env").env({"FOO": "BAR"}).exec()
+
 c=Cmd("cat *") | Cmd("wc -l")
 c.exec()
 

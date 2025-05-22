@@ -6,7 +6,10 @@
 
 - might want to flush stdout at the end of the pipeline?
 
-- provide a way to set the env variables
+- provide a way to set the env variables -- done: can use env({}) to
+  set environment of shell executed commmands
 
 - probably want to set the cwd and environ of the Filter thread to
 same thing that the subprocess.Popen is set to.
+
+     -- this may be less useful

@@ -24,14 +24,13 @@ by spaces which is passed to a shell to execute
     def __init__(self, *args):
         self.args = args
         self.cmd = " ".join(self.args)
+        self.modified_env = None
         self.next_pipeline_cmd = None
         self.capture_output = False
         self.cwd_path = None
         self.prev_pipeline_cmd = None
         self.encoding = 'utf-8'
         self.resultcode = None
-
-
         self.popen_res = None
         self.pipesize = -1
     # end def
@@ -42,6 +41,11 @@ by spaces which is passed to a shell to execute
         return self
     # end def
 
+    def env(self, env):
+        """a dictionary of values which will be the environment of the command"""
+        self.modified_env = env
+        return self
+    # end env
 
     def cwd(self, path):
         self.cwd_path = path
@@ -80,12 +84,13 @@ by spaces which is passed to a shell to execute
         if (self.next_pipeline_cmd):
             stdout_arg=subprocess.PIPE
         # end if
+
         ret = subprocess.Popen(self.cmd,
                                stdin=input,
                                stdout=stdout_arg,
                                cwd=self.cwd_path,
                                #capture_output=self.capture_output,
-                               env=None,
+                               env=self.modified_env,
                                encoding=self.encoding,
                                shell=True,
                                pipesize=self.pipesize
